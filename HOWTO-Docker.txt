@@ -1,0 +1,53 @@
+Image Repository (Registry) -> Image -> Container_1
+
+RHOCP
+K8S (Orchestration, Schedule, Isolates, HA) containers
+Container
+
+# podman run rhel 7:7.5 echo "Hello, World"
+# podman search rhel
+# podman pull rhel --name <container name>
+
+For Dockerfile, every time a RUN instruction is included, a new container layer is created, thus to minimise the number
+of containter layers, avoid the proliferation of RUN instructions by including all in a single line. That means:
+
+RUN yum install -y httpd
+RUN yum update
+
+write:
+
+RUM yum install -y httpd && yum update
+
+CMD lines can be collapsed by including this line in ENTRYPOINT. That means:
+
+ENTRYPOINT ["/usr/sbin/httpd"]
+CMD ["-D","FOREGROUND"]
+
+write:
+
+ENTRYPOINT ["/usr/sbin/httpd","-D","FOREGROUND"]
+
+If no ENTRYPOINT is specified the default one is /bin/sh -c.
+
+A server uses a port asigned by the EXPOSE line. In this case, if the port 80 is busy in the host server, you can
+forward this port to an unprivileged one when running the container.
+
+A Dockerfile is executed by running the command:
+
+$ podmain build .
+$ podman build -f Dockerfile
+
+$ podman run --name=rhel7 7b875638cfd8
+$ podman ps -a
+CONTAINER ID  IMAGE                                      COMMAND    CREATED         STATUS                     PORTS
+NAMES
+8099cbce70f1  registry.access.redhat.com/rhel7.5:latest  /bin/bash  56 seconds ago  Exited (0) 55 seconds ago
+rhel7
+
+If you want to have a look at the running container by opening a shell, issue the command:
+
+# podman run -it registry.access.redhat.com/rhel7.5:latest /usr/bin/bash
+
+If you want to remove all images use the command:
+
+# podman rmi -a

@@ -1,0 +1,61 @@
+Sonatype Nexus OSS Repository Manager
+=====================================
+
+Running a standalone Sonatype OSS Nexus3 repository manager as micro-service:
+
+# docker volume create --name nexus-data
+root@cae-vm-12:/var/lib/docker/volumes/nexus-data/_data# docker volume ls
+DRIVER    VOLUME NAME
+local     nexus-data
+
+# docker run -d -p 8081:8081 --name nexus -v nexus-data:/nexus-data sonatype/nexus3
+
+Notice that the persistent volume assigned above is available at the host directory at /var/lib/docker/volumes/nexus-data/_data, where you can find the initial password for admin user:
+
+root@cae-vm-12:/var/lib/docker/volumes/nexus-data/_data# cat admin.password 
+81301c23-a394-4646-ad3d-c0741e6b5016root@cae-vm-12:/var/lib/docker/volumes/nexus-data/_data# cat admin.password;echo
+
+However in certain circumstances, you can use a host directory to allocate persistent storage for Docker containers. Although is not the recommended way, you need to set up the UID to 200, which is used by Docker service to write this directory.
+
+To stop the Nexus container, use the command below:
+
+# docker stop --time=120 nexus
+
+Custom Development
+==================
+
+root@cae-vm-12:~# git clone https://github.com/sonatype/docker-nexus3
+
+# apt ruby-rspec
+
+root@cae-vm-12:~/docker-nexus3# rspec spec/Dockerfile_spec.rb 
+
+
+Jenkins
+=======
+
+root@cae-vm-12:~# docker pull jenkins/jenkins:lts-jdk11
+
+The following command creates a persistent storage using a Docker volume at /var/jenkins_home/ directory:
+
+root@cae-vm-12:~# docker run -d -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home --restart=on-failure jenkins/jenkins:lts-jdk11 
+
+In case you want to add an entry to container's /etc/host file becase you do not trust on host DNS services, use the --add-host option:
+
+root@cae-vm-12:~# docker run --add-host=cae-vm-12.eadscasa.casa.corp:10.128.115.22 -d -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home --restart=on-failure jenkins/jenkins:lts-jdk11 
+
+The initial admin password is placed at /var/jenkins_home/secrets/initialAdminPassword
+
+Also is required to install the plugin for Sonatype Nexus repository.
+
+Nexus PlatformVersion
+3.16.476.v410d6968f400
+
+Once the installation has ended up, configure Nexus plugins in Jenkins with the following parameters:
+
+Display Name
+Server ID   A001  
+Server URL  http://cae-vm-12.eadscasa.casa.corp:8081
+Credentials Local (admin)
+
+
